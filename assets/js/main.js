@@ -1,4 +1,4 @@
-const host = '37.46.133.40:5000/api';
+const host = 'https://37.46.133.40:5000/api';
 
 const app = new Vue({
   el: '#app',
