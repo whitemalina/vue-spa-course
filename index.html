@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>API</title>
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+  <style>
+      .fade-enter-active,
+      .fade-leave-active {
+          transition: all .3s ease-in-out;
+      }
+
+      .fade-enter,
+      .fade-leave-to {
+          opacity: 0;
+      }
+  </style>
+</head>
+<body>
+<div id="app">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+      <a class="navbar-brand" @click.prevent="page = 'index'" href="#">App</a>
+
+      <div class="navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" :class="{ active: page === 'index' }" @click.prevent="openPage('index')"
+               href="#">Главная</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" :class="{ active: page === 'profile' }" @click.prevent="openPage('profile')"
+               href="#">Мой профиль</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" :class="{ active: page === 'createPost' }" @click.prevent="openPage('createPost')"
+               href="#">Новый пост</a>
+          </li>
+
+          <li class="nav-item" v-if="!user">
+            <a class="nav-link" :class="{ active: page === 'login' }" @click.prevent="openPage('login')"
+               href="#">Войти</a>
+          </li>
+
+          <li class="nav-item" v-if="user">
+            <a class="nav-link" @click.prevent="logout" href="#">Выйти</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <transition name="fade" mode="out-in" :duration="600">
+    <!-- Главная страница -->
+    <div v-if="page === 'index'" key="index" class="container py-5">
+      <div class="row">
+
+        <div v-for="post in posts" class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+          <div class="card">
+            <img :src="post.image" class="card-img-top" :alt="post.name">
+            <div class="card-body">
+              <div class="badge bg-success mb-3">{{ post.user }}</div>
+              <h5 class="card-title">{{ post.name }}</h5>
+              <p class="card-text">{{ post.text }}</p>
+              <a href="#" class="btn btn-primary" @click="page = 'post'">Читать пост</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- / Главная страница -->
+
+    <!-- Страница регистрации -->
+    <div v-if="page === 'register'" key="register" class="container py-5">
+      <h2 class="mb-4">Регистрация</h2>
+
+      <form @submit.prevent="register">
+        <div class="mb-3">
+          <label class="form-label">Имя</label>
+          <input v-model="registerForm.name" type="text" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Логин</label>
+          <input v-model="registerForm.login" type="text" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Пароль</label>
+          <input v-model="registerForm.password" type="password" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+        <a class="ms-3" @click.prevent="openPage('login')" href="#">Войти</a>
+      </form>
+    </div>
+    <!-- / Страница регистрации -->
+
+    <!-- Страница входа -->
+    <div v-if="page === 'login'" key="login" class="container py-5">
+      <h2 class="mb-4">Войдите</h2>
+
+      <form @submit.prevent="login">
+        <div class="mb-3">
+          <label for="emailInput" class="form-label">Login</label>
+          <input v-model="loginForm.login" type="text" class="form-control" id="emailInput">
+        </div>
+        <div class="mb-3">
+          <label for="passwordInput" class="form-label">Пароль</label>
+          <input v-model="loginForm.password" type="password" class="form-control" id="passwordInput">
+        </div>
+        <button type="submit" class="btn btn-primary">Войти</button>
+        <a class="ms-3" @click.prevent="openPage('register')" href="#">Регистрация</a>
+      </form>
+    </div>
+    <!-- / Страница входа -->
+
+    <!-- Страница поста -->
+    <div v-if="page === 'post'" key="post" class="container py-5">
+      <h2 class="mb-4">Название</h2>
+
+      <img src="" alt="">
+
+      <p>Текст</p>
+
+      <h4 class="mt-3">Комментарии</h4>
+
+      <form class="mb-4">
+        <textarea rows="3" class="form-control" placeholder="Введите комментарий"></textarea>
+        <button class="btn btn-success mt-2">Отправить</button>
+      </form>
+
+      <div class="comments">
+        <!-- Комментарий -->
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <h5 class="card-title">Автор комментария</h5>
+              <small class="card-text text-muted">Время создания</small>
+            </div>
+            <p class="card-text">Текст комментария</p>
+          </div>
+        </div>
+        <!-- / Комментарий -->
+      </div>
+    </div>
+    <!-- / Страница поста -->
+
+    <!-- Создание поста -->
+    <div v-if="page === 'createPost'" key="createPost" class="container py-5">
+      <h2 class="mb-4">Создание поста</h2>
+
+      <form @submit.prevent="createPost">
+        <div class="mb-3">
+          <label class="form-label">Название поста</label>
+          <input v-model="postForm.name" type="text" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Текст поста</label>
+          <textarea v-model="postForm.text" class="form-control" rows="10"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Изображение</label>
+          <input type="file" @change="fileSelected" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-success mt-4">Создать пост</button>
+      </form>
+    </div>
+    <!-- / Создание поста -->
+
+    <!-- Страница профиля -->
+    <div v-if="page === 'profile'" key="profile" class="container py-5">
+      <h2 class="mb-4">Добро пожаловать, {{ user.username }}!</h2>
+
+      <table class="table">
+        <tr>
+          <th>ID</th>
+          <th>Название поста</th>
+          <th>Дата создания</th>
+          <th>Действия</th>
+        </tr>
+
+        <tr>
+          <td>1</td>
+          <td>Первый пост</td>
+          <td>дата</td>
+          <td>
+            <button class="btn btn-primary">Перейти к посту</button>
+            <button class="btn btn-danger">Удалить пост</button>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <!-- / Страница профиля -->
+  </transition>
+
+  <!-- Уведомления -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 5">
+    <transition-group name="fade">
+      <div v-for="toast in toasts" :key="toast.id" class="toast show mb-2">
+        <div class="toast-body" :class="toast.classes">{{ toast.text }}</div>
+      </div>
+    </transition-group>
+  </div>
+  <!-- / Уведомления -->
+</div>
+
+<script src="assets/js/vue.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
